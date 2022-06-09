@@ -1,10 +1,12 @@
 from rest_framework import serializers
 from .models import Order, OrderProduct
 
+
 class OrderProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderProduct
         fields = ('product', 'quantity', 'total_cost')
+
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderProductSerializer(many=True, write_only=True, required=True)
@@ -13,13 +15,13 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('items', 'total_cost', 'delivery_address', 'status')
+        fields = ('id', 'items', 'total_cost', 'delivery_address', 'status')
 
     def create(self, validated_data):
         request = self.context.get('request')
         items = validated_data.pop('items')
         if request.user.is_authenticated:
-            validated_data['user_id'] = request.user.id
+            validated_data['user'] = request.user
         order = Order.objects.create(**validated_data)
         total_order_cost = 0
         for item in items:
